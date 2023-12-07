@@ -1,20 +1,37 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { ChevronLeft, MenuIcon, PlusCircle } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { ChevronLeft, MenuIcon, PlusCircle, Search, Settings, Trash } from "lucide-react";
+import { useParams, usePathname } from "next/navigation";
 import React, { ElementRef, useEffect ,useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import {useQuery,useMutation} from "convex/react";
-import { UserItem } from "./user-item";
-import { Item } from "./item";
-import { api } from "@/convex/_generated/api";
+import {useMutation} from "convex/react";
 import { toast } from "sonner";
 
+import { cn } from "@/lib/utils";
+import { api } from "@/convex/_generated/api";
+
+//Displays rich content in a portal, triggered by a button.
+//https://ui.shadcn.com/docs/components/popover
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+
+import { useSearch } from "@/hooks/use-search";
+import { useSettings } from "@/hooks/use-settings";
+import { UserItem } from "./user-item";
+import { Item } from "./item";
+import { DocumentList } from "./document-list";
+import { TrashBox } from "./trash-box";
+import { Navbar } from "./navbar";
+
 export const Navigation = () => {
+  const settings = useSettings();
+  const search = useSearch();
+  const params = useParams();
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const documents = useQuery(api.documents.get);
 
   const create = useMutation(api.documents.create);
 
@@ -134,17 +151,40 @@ export const Navigation = () => {
         <div>
           <UserItem />
           <Item
+            label="Search"
+            icon={Search}
+            isSearch
+            onClick={search.onOpen}
+          />
+          <Item
+            label="Settings"
+            icon={Settings}
+            onClick={settings.onOpen}
+          />
+          <Item
             onClick={handleCreate}
             label="New page"
             icon={PlusCircle}
           />
         </div>
         <div className="mt-4">
-        {documents?.map((document) => (
-          <p key={document._id}>
-            {document.title}  
-          </p>
-        ))}
+          <DocumentList />
+          <Item
+            onClick={handleCreate}
+            label="Add a page"
+            icon={PlusCircle}
+          />
+          <Popover>
+            <PopoverTrigger className="w-full mt-4">
+              <Item label="Trash" icon={Trash} />
+            </PopoverTrigger>
+            <PopoverContent
+              className="p-0 w-72"
+              side={isMobile ? "bottom" : "right"}
+            >
+              <TrashBox />
+            </PopoverContent>
+          </Popover>
         </div>
         <div
           onMouseDown={handleMouseDown}
@@ -160,9 +200,16 @@ export const Navigation = () => {
           isMobile && "left-0 w-full"
         )}
       >
-        <nav className="bg-transparent px-3 py-2 w-full">
+        {!!params.documentId ? (
+          <Navbar
+            isCollapsed={isCollapsed}
+            onResetWidth={resetWidth}
+          />
+        ) : (
+          <nav className="bg-transparent px-3 py-2 w-full">
           {isCollapsed && <MenuIcon onClick={resetWidth} role="button" className="w-6 h-6 text-muted-foreground" />}
-        </nav>
+          </nav>
+        )}
       </div>
     </>
   )
