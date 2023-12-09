@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/providers/theme-provider'
 import { ConvexClientProvider } from '@/components/providers/convex-provider'
 
 import { ModelProvider } from '@/components/providers/model-provider'
+import { EdgeStoreProvider } from '@/lib/edgestore'
 
 import './globals.css'
 
@@ -25,17 +26,19 @@ export default function RootLayout({
     <html lang="en" suppressContentEditableWarning>
       <body className={inter.className}>
         <ConvexClientProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-          storageKey='echo-theme-2'
-          >
-            <Toaster position='bottom-center' />
-            <ModelProvider />
-          {children}
-        </ThemeProvider>
+          <EdgeStoreProvider>
+            <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+            storageKey='echo-theme-2'
+            >
+              <Toaster position='bottom-center' />
+              <ModelProvider />
+            {children}
+            </ThemeProvider>
+          </EdgeStoreProvider>
         </ConvexClientProvider>
         </body>
     </html>
